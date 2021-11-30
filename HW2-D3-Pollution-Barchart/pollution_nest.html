@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pollution</title>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<h1>Total Morality by Country in 2016</h1>
+<script type="text/javascript">
+  var w = 3000;
+  var h = 700;
+  var cellpadding = 1;
+
+  var svg = d3.select("body").append("svg")
+    .attr("width", w)
+    .attr("height", h);
+
+  d3.csv('pollution.csv')
+    .then(function(data){
+      console.log(data);
+
+      var nest = d3.nest()
+      .key(function(d) {return d.Country;})
+      .rollup(function(v) { return {"morality": d3.sum(v, function(d) {return parseFloat(d.Both);})} })
+      .entries(data);
+
+      var yScale = d3.scaleLinear()
+        .domain([0, d3.max(nest, function(d){
+          return d.value.morality;
+        })])
+        .range([0,h/2]);
+
+      var colorScale = d3.scaleLinear()
+       .domain([0, d3.max(nest, function(d){
+         return d.value.morality;
+       })])
+       .range([255, 0]);
+
+      svg.selectAll("rect")
+        .data(nest)
+        .enter()
+        .append("rect")
+        .attr("width", w/nest.length - cellpadding)
+        .attr("height", h)
+        .attr("x", function(d, i){
+          return w / nest.length * i;
+        })
+        .attr("height", function(d){
+          return yScale(d.value.morality);
+        })
+        .attr("y", function(d){
+          return h/2 - yScale(d.value.morality);
+        })
+        .attr("fill", function(d){
+          var f = colorScale(d.value.morality);
+           if(f <= 51)
+             return "coral"
+           else
+             return "rgb(" + f + "," + f*0.8 + "," + f*0.8 + ")";
+        });
+
+        svg.selectAll("text")
+          .data(nest)
+          .enter()
+          .append("text")
+          .attr("font-size","15px")
+          .text(function(d){
+            return d.key;
+          })
+          .attr("transform", function(d, i){
+            return "translate(" + w/nest.length * i +
+              ","+h/2+")"+"rotate(90)"
+          })
+
+      // svg.selectAll("rect")
+      //   .data(nest)
+      //   .enter()
+      //   .append("rect")
+      //   .attr("width", w / data.length - cellpadding)
+      //   .attr("height", h)
+      //   .attr("x", function(d,i){
+      //     return w / data.length * i;
+      //   })
+      //   .attr("height", function(d){
+      //     return yScale(d.Both);
+      //   })
+      //   .attr("y", function(d){
+      //     return h/2 - yScale(d.Both);
+      //   })
+      //   .attr("fill", function(d){
+      //     var f = colorScale(d.Both);
+      //      if(f <= 51)
+      //        return "plum";
+      //      else 
+      //        return "rgb(" + f*0.6 + "," + f*0.8 + "," + f + ")";
+      //   });
+      
+        // svg.selectAll("text")
+        //   .data(nest)
+        //   .enter()
+        //   .append("text")
+        //   .attr("font-size","10px")
+        //   .text(function(d){
+        //     return d.Country;
+        //   })
+          // .attr("transform", function(d, i){
+          //   return "translate(" + w/data.length * i +
+          //     ","+h/2+")"+"rotate(90)"
+          // })
+    });
+  
+</script>
+</body>
+</html>
